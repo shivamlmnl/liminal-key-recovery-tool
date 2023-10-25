@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"crypto/sha256"
+	"encoding/asn1"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -26,9 +27,18 @@ type GetPartialRecoveryResponse struct {
 	Data    string `json:"data"`
 }
 
-const apiUrl = "https://api.lmnl.app"
-const auth0Url = "https://lmnlhq.us.auth0.com/oauth/token"
-const auth0Audience = "https://api.lmnl.app/api/"
+//const apiUrl = "https://api.lmnl.app"
+//const auth0Url = "https://lmnlhq.us.auth0.com/oauth/token"
+//const auth0Audience = "https://api.lmnl.app/api/"
+
+//const apiUrl = "http://43.204.11.92:3001"
+
+//const auth0Url = "https://lmnl.us.auth0.com/oauth/token"
+//const auth0Audience = "https://api.lmnl.dev/api/wallet/all"
+
+const apiUrl = "https://api.lmnl.dev"
+const auth0Url = "https://lmnl.us.auth0.com/oauth/token"
+const auth0Audience = "https://api.lmnl.dev/api/wallet/all"
 
 func mustParseURL(urlStr string) url.URL {
 	u, err := url.Parse(urlStr)
@@ -91,6 +101,7 @@ func startLiminalRecoveryInfo(keyId string, token string, pubKey []byte, session
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(string(body))
 
 	var getPartialRecoveryResp GetPartialRecoveryResponse
 	err = json.Unmarshal(body, &getPartialRecoveryResp)
@@ -153,6 +164,7 @@ func getAccountDetails(token string) (*string, *string, error) {
 	if err != nil {
 		return nil, nil, err
 	}
+	fmt.Println(string(body))
 	var meResp map[string]interface{}
 	err = json.Unmarshal(body, &meResp)
 	if err != nil {
@@ -473,4 +485,24 @@ func encodePoint(p point) ([]byte, error) {
 	}
 	_, _ = pBuf.Write(p.x.Bytes())
 	return pBuf.Bytes(), nil
+}
+
+func parseASN1PublicKey(skBytes []byte) ([]byte, error) {
+	//SEQUENCE (3 elem)
+	//  INTEGER 1
+	//  OCTET STRING (32 byte) E15AECACD7CB3304435D1FCCBA1132449E74FDA2EE2205516D165015E2041E1B
+	//  [0] (1 elem)
+	//    OBJECT IDENTIFIER 1.3.132.0.10 secp256k1 (SECG (Certicom) named elliptic curve)
+	type ASN1Key struct {
+		Seq interface{}
+		Key asn1.BitString
+	}
+	var key ASN1Key
+	rest, err := asn1.Unmarshal(skBytes, &key)
+	if err != nil {
+		return nil, err
+	} else if len(rest) > 0 {
+		return nil, fmt.Errorf("ASN1 struct contains additional data: %v", rest)
+	}
+	return key.Key.Bytes, nil
 }
