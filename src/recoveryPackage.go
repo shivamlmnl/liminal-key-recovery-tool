@@ -11,14 +11,13 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"golang.org/x/crypto/pbkdf2"
-	"golang.org/x/term"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"strings"
-	"syscall"
+
+	"golang.org/x/crypto/pbkdf2"
 )
 
 type KeyData struct {
@@ -28,23 +27,8 @@ type KeyData struct {
 	PublicKey   string `json:"publickey"`
 }
 
-func getRecoveryInfoFromPackage(algorithm string) (*RecoveryInfo, *rsa.PrivateKey, error) {
-	fmt.Println("Enter recovery package file name")
-	var input string
-	_, err := fmt.Scanln(&input)
-	if err != nil {
-		log.Println("Invalid input")
-		log.Fatal(err)
-	}
-	recoveryType := getRecoveryPackageType(input)
+func getRecoveryInfoFromPackage(algorithm string, recoveryType int, input string, bytepw []byte) (*RecoveryInfo, *rsa.PrivateKey, error) {
 	if recoveryType == 1 {
-		fmt.Println("WARNING: PERFORM THIS ACTION ONLY ON OFFLINE COMPUTER\n" +
-			"Please make sure the recovery package file with name liminal-recovery-package and recovery key pair private key file with name liminal-recovery-key-pair-private-key is in the current folder.\n" +
-			"Enter Recovery key pair passphrase")
-		bytepw, err := term.ReadPassword(int(syscall.Stdin))
-		if err != nil {
-			os.Exit(1)
-		}
 		rsaPrivateKey, err := os.ReadFile("liminal-recovery-key-pair-private-key.pem")
 		if err != nil {
 			log.Println(err)
@@ -82,16 +66,10 @@ func getRecoveryInfoFromPackage(algorithm string) (*RecoveryInfo, *rsa.PrivateKe
 			IV    string `json:"iv"`
 			Round int64  `json:"round"`
 		}
-		err = json.Unmarshal(backupFileData, &backupDetails)
+		err := json.Unmarshal(backupFileData, &backupDetails)
 		if err != nil {
 			log.Println("Error reading backup file details")
 			log.Fatal(err)
-		}
-		fmt.Println("WARNING: PERFORM THIS ACTION ONLY ON OFFLINE COMPUTER\n" +
-			"Enter Recovery key pair passphrase")
-		bytepw, err := term.ReadPassword(int(syscall.Stdin))
-		if err != nil {
-			os.Exit(1)
 		}
 		dk := pbkdf2.Key(bytepw, []byte(backupDetails.Salt), int(backupDetails.Round), 32, sha1.New)
 		ciphertext, err := base64.StdEncoding.DecodeString(string(privateKeyEnc))

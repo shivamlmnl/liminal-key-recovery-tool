@@ -7,6 +7,7 @@ require (
 	github.com/google/uuid v1.3.0
 	gitlab.com/sepior/ers-lib v0.0.0-20230607071522-f09d8c003a84
 	gitlab.com/sepior/go-tsm-sdk v0.0.0-20230510084744-b59f88e4034b
+	golang.org/x/crypto v0.13.0
 	golang.org/x/term v0.12.0
 )
 
@@ -25,7 +26,6 @@ require (
 	github.com/mmcloughlin/addchain v0.4.0 // indirect
 	github.com/sirupsen/logrus v1.9.3 // indirect
 	github.com/supranational/blst v0.3.11 // indirect
-	golang.org/x/crypto v0.13.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
 	golang.org/x/sys v0.12.0 // indirect
 	rsc.io/tmplfunc v0.0.3 // indirect

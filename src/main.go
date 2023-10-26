@@ -10,11 +10,6 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"github.com/google/uuid"
-	"gitlab.com/sepior/ers-lib/ers"
-	"gitlab.com/sepior/ers-lib/math"
-	"gitlab.com/sepior/go-tsm-sdk/sdk/tsm"
-	"golang.org/x/term"
 	"log"
 	"math/big"
 	"os"
@@ -22,6 +17,12 @@ import (
 	"strings"
 	"sync"
 	"syscall"
+
+	"github.com/google/uuid"
+	"gitlab.com/sepior/ers-lib/ers"
+	"gitlab.com/sepior/ers-lib/math"
+	"gitlab.com/sepior/go-tsm-sdk/sdk/tsm"
+	"golang.org/x/term"
 )
 
 type TSMCredentials struct {
@@ -300,7 +301,35 @@ func startGeneratingRecoveryInfo() {
 }
 
 func startRecoveringECDSAPrivateKey() {
-	recoveryInfo, key, err := getRecoveryInfoFromPackage("ecdsa")
+	fmt.Println("Enter recovery package file name")
+	var fileName string
+	_, err := fmt.Scanln(&fileName)
+	if err != nil {
+		log.Println("Invalid input")
+		log.Fatal(err)
+	}
+
+	var bytepw []byte
+
+	recoveryType := getRecoveryPackageType(fileName)
+	if recoveryType == 1 {
+		fmt.Println("WARNING: PERFORM THIS ACTION ONLY ON OFFLINE COMPUTER\n" +
+			"Please make sure the recovery package file with name liminal-recovery-package and recovery key pair private key file with name liminal-recovery-key-pair-private-key is in the current folder.\n" +
+			"Enter Recovery key pair passphrase")
+		bytepw, err = term.ReadPassword(int(syscall.Stdin))
+		if err != nil {
+			os.Exit(1)
+		}
+	} else {
+		fmt.Println("WARNING: PERFORM THIS ACTION ONLY ON OFFLINE COMPUTER\n" +
+			"Enter Recovery key pair passphrase")
+		bytepw, err = term.ReadPassword(int(syscall.Stdin))
+		if err != nil {
+			os.Exit(1)
+		}
+	}
+
+	recoveryInfo, key, err := getRecoveryInfoFromPackage("ecdsa", recoveryType, fileName, bytepw)
 	if err != nil {
 		log.Println(err)
 		log.Fatal("Error reading recovery package")
@@ -350,7 +379,35 @@ func startRecoveringECDSAPrivateKey() {
 }
 
 func startRecoveringEDDSAPrivateKey() {
-	recoveryInfo, key, err := getRecoveryInfoFromPackage("eddsa")
+	fmt.Println("Enter recovery package file name")
+	var fileName string
+	_, err := fmt.Scanln(&fileName)
+	if err != nil {
+		log.Println("Invalid input")
+		log.Fatal(err)
+	}
+
+	var bytepw []byte
+
+	recoveryType := getRecoveryPackageType(fileName)
+	if recoveryType == 1 {
+		fmt.Println("WARNING: PERFORM THIS ACTION ONLY ON OFFLINE COMPUTER\n" +
+			"Please make sure the recovery package file with name liminal-recovery-package and recovery key pair private key file with name liminal-recovery-key-pair-private-key is in the current folder.\n" +
+			"Enter Recovery key pair passphrase")
+		bytepw, err = term.ReadPassword(int(syscall.Stdin))
+		if err != nil {
+			os.Exit(1)
+		}
+	} else {
+		fmt.Println("WARNING: PERFORM THIS ACTION ONLY ON OFFLINE COMPUTER\n" +
+			"Enter Recovery key pair passphrase")
+		bytepw, err = term.ReadPassword(int(syscall.Stdin))
+		if err != nil {
+			os.Exit(1)
+		}
+	}
+
+	recoveryInfo, key, err := getRecoveryInfoFromPackage("eddsa", recoveryType, fileName, bytepw)
 	if err != nil {
 		log.Println(err)
 		log.Fatal("Error reading recovery package")
@@ -560,7 +617,35 @@ func verifyRSAKey() {
 }
 
 func verifyRecoveryPackage() {
-	ecdsaRecoveryInfo, key, err := getRecoveryInfoFromPackage("ecdsa")
+	fmt.Println("Enter recovery package file name")
+	var input string
+	_, err := fmt.Scanln(&input)
+	if err != nil {
+		log.Println("Invalid input")
+		log.Fatal(err)
+	}
+
+	var bytepw []byte
+
+	recoveryType := getRecoveryPackageType(input)
+	if recoveryType == 1 {
+		fmt.Println("WARNING: PERFORM THIS ACTION ONLY ON OFFLINE COMPUTER\n" +
+			"Please make sure the recovery package file with name liminal-recovery-package and recovery key pair private key file with name liminal-recovery-key-pair-private-key is in the current folder.\n" +
+			"Enter Recovery key pair passphrase")
+		bytepw, err = term.ReadPassword(int(syscall.Stdin))
+		if err != nil {
+			os.Exit(1)
+		}
+	} else {
+		fmt.Println("WARNING: PERFORM THIS ACTION ONLY ON OFFLINE COMPUTER\n" +
+			"Enter Recovery key pair passphrase")
+		bytepw, err = term.ReadPassword(int(syscall.Stdin))
+		if err != nil {
+			os.Exit(1)
+		}
+	}
+
+	ecdsaRecoveryInfo, key, err := getRecoveryInfoFromPackage("ecdsa", recoveryType, input, bytepw)
 	if err != nil {
 		log.Println(err)
 		log.Fatal("Error reading recovery package")
@@ -611,7 +696,7 @@ func verifyRecoveryPackage() {
 		}
 	}
 
-	eddsaRecoveryInfo, key, err := getRecoveryInfoFromPackage("eddsa")
+	eddsaRecoveryInfo, key, err := getRecoveryInfoFromPackage("eddsa", recoveryType, input, bytepw)
 	if err != nil {
 		log.Println(err)
 		log.Fatal("Error reading recovery package")
