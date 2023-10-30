@@ -82,7 +82,7 @@ func getRecoveryInfoFromPackage(algorithm string, recoveryType int, input string
 		}
 
 		if len(ciphertext)%aes.BlockSize != 0 {
-			panic("ciphertext is not a multiple of the block size")
+			panic("Invalid encrypted private key")
 		}
 
 		mode := cipher.NewCBCDecrypter(block, []byte(backupDetails.IV))
@@ -133,23 +133,20 @@ func getRecoveryInfoFromPackage(algorithm string, recoveryType int, input string
 }
 
 func getRecoveryPackageType(name string) int {
+	var recoveryType string
 
-	file, err := os.Open(name)
-	if err != nil {
-		panic(err)
-	}
-
-	defer file.Close()
-	fileType, err := GetFileContentType(file)
+	fmt.Println("Please select backup type.\n" + "1. Server backup\n" + "2. Mobile backup")
+	_, err := fmt.Scanln(&recoveryType)
 	if err != nil {
 		log.Fatal(err)
 	}
-	if fileType == "application/zip" {
-		return 2
-	} else if fileType == "text/plain; charset=utf-8" {
+
+	if recoveryType == "1" {
 		return 1
+	} else if recoveryType == "2" {
+		return 2
 	} else {
-		log.Fatal("Invalid file type")
+		log.Fatal("Invalid input")
 		return 0
 	}
 }
