@@ -679,7 +679,7 @@ func verifyRecoveryPackage() {
 			log.Fatal(err)
 		}
 		if publicKeyProduction != ecdsaRecoveryInfo.EcdsaPublicKey {
-			log.Fatal("Ecdsa public key mismatch")
+			log.Fatal("Error verifying ecdsa public key")
 		}
 	} else {
 		publicKeyFromPrivateKey := hex.EncodeToString(publicMasterKey.Encode())
@@ -687,12 +687,12 @@ func verifyRecoveryPackage() {
 		parsedPublicKey, err := parseASN1PublicKey(asn1PublicKey)
 		if err != nil {
 			log.Println(err)
-			log.Fatal("Error parsing asn1 public key")
+			log.Fatal("Error parsing public key")
 		}
 		publicKeyKeyFile := hex.EncodeToString(parsedPublicKey)
 
 		if publicKeyKeyFile != publicKeyFromPrivateKey {
-			log.Fatal("Ecdsa public key mismatch")
+			log.Fatal("Error verifying ecdsa public key")
 		}
 	}
 
@@ -715,7 +715,7 @@ func verifyRecoveryPackage() {
 	publicKey := curve2.G().Mul(privateKeyScalar)
 	publicKeyProduction = hex.EncodeToString(publicKey.Encode())
 	if publicKeyProduction != strings.ToLower(eddsaRecoveryInfo.EddsaPublicKey) {
-		log.Fatal("Eddsa public key mismatch")
+		log.Fatal("Error verifying eddsa public key")
 	}
 	fmt.Println("Recovery package verification successful")
 }
