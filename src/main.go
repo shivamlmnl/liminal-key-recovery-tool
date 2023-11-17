@@ -311,7 +311,7 @@ func startRecoveringECDSAPrivateKey() {
 
 	var bytepw []byte
 
-	recoveryType := getRecoveryPackageType(fileName)
+	recoveryType := getRecoveryPackageType()
 	if recoveryType == 1 {
 		fmt.Println("WARNING: PERFORM THIS ACTION ONLY ON OFFLINE COMPUTER\n" +
 			"Please make sure the recovery package file with name liminal-recovery-package and recovery key pair private key file with name liminal-recovery-key-pair-private-key is in the current folder.\n" +
@@ -389,7 +389,7 @@ func startRecoveringEDDSAPrivateKey() {
 
 	var bytepw []byte
 
-	recoveryType := getRecoveryPackageType(fileName)
+	recoveryType := getRecoveryPackageType()
 	if recoveryType == 1 {
 		fmt.Println("WARNING: PERFORM THIS ACTION ONLY ON OFFLINE COMPUTER\n" +
 			"Please make sure the recovery package file with name liminal-recovery-package and recovery key pair private key file with name liminal-recovery-key-pair-private-key is in the current folder.\n" +
@@ -627,7 +627,7 @@ func verifyRecoveryPackage() {
 
 	var bytepw []byte
 
-	recoveryType := getRecoveryPackageType(input)
+	recoveryType := getRecoveryPackageType()
 	if recoveryType == 1 {
 		fmt.Println("WARNING: PERFORM THIS ACTION ONLY ON OFFLINE COMPUTER\n" +
 			"Please make sure the recovery package file with name liminal-recovery-package and recovery key pair private key file with name liminal-recovery-key-pair-private-key is in the current folder.\n" +
