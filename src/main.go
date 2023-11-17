@@ -617,32 +617,28 @@ func verifyRSAKey() {
 }
 
 func verifyRecoveryPackage() {
-	fmt.Println("Enter recovery package file name")
 	var input string
-	_, err := fmt.Scanln(&input)
-	if err != nil {
-		log.Println("Invalid input")
-		log.Fatal(err)
-	}
-
-	var bytepw []byte
 
 	recoveryType := getRecoveryPackageType()
 	if recoveryType == 1 {
 		fmt.Println("WARNING: PERFORM THIS ACTION ONLY ON OFFLINE COMPUTER\n" +
 			"Please make sure the recovery package file with name liminal-recovery-package and recovery key pair private key file with name liminal-recovery-key-pair-private-key is in the current folder.\n" +
 			"Enter Recovery key pair passphrase")
-		bytepw, err = term.ReadPassword(int(syscall.Stdin))
-		if err != nil {
-			os.Exit(1)
-		}
 	} else {
+		fmt.Println("Enter recovery package file name")
+		_, err := fmt.Scanln(&input)
+		if err != nil {
+			log.Println("Invalid input")
+			log.Fatal(err)
+		}
+
 		fmt.Println("WARNING: PERFORM THIS ACTION ONLY ON OFFLINE COMPUTER\n" +
 			"Enter Recovery key pair passphrase")
-		bytepw, err = term.ReadPassword(int(syscall.Stdin))
-		if err != nil {
-			os.Exit(1)
-		}
+	}
+
+	bytepw, err := term.ReadPassword(int(syscall.Stdin))
+	if err != nil {
+		os.Exit(1)
 	}
 
 	ecdsaRecoveryInfo, key, err := getRecoveryInfoFromPackage("ecdsa", recoveryType, input, bytepw)
