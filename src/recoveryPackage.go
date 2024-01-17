@@ -11,14 +11,13 @@ import (
 	"encoding/json"
 	"encoding/pem"
 	"fmt"
-	"golang.org/x/crypto/pbkdf2"
-	"golang.org/x/term"
 	"io"
 	"log"
 	"net/http"
 	"os"
 	"strings"
-	"syscall"
+
+	"golang.org/x/crypto/pbkdf2"
 )
 
 type KeyData struct {
@@ -28,23 +27,8 @@ type KeyData struct {
 	PublicKey   string `json:"publickey"`
 }
 
-func getRecoveryInfoFromPackage(algorithm string) (*RecoveryInfo, *rsa.PrivateKey, error) {
-	fmt.Println("Enter recovery package file name")
-	var input string
-	_, err := fmt.Scanln(&input)
-	if err != nil {
-		log.Println("Invalid input")
-		log.Fatal(err)
-	}
-	recoveryType := getRecoveryPackageType(input)
+func getRecoveryInfoFromPackage(algorithm string, recoveryType int, input string, bytepw []byte) (*RecoveryInfo, *rsa.PrivateKey, error) {
 	if recoveryType == 1 {
-		fmt.Println("WARNING: PERFORM THIS ACTION ONLY ON OFFLINE COMPUTER\n" +
-			"Please make sure the recovery package file with name liminal-recovery-package and recovery key pair private key file with name liminal-recovery-key-pair-private-key is in the current folder.\n" +
-			"Enter Recovery key pair passphrase")
-		bytepw, err := term.ReadPassword(int(syscall.Stdin))
-		if err != nil {
-			os.Exit(1)
-		}
 		rsaPrivateKey, err := os.ReadFile("liminal-recovery-key-pair-private-key.pem")
 		if err != nil {
 			log.Println(err)
@@ -82,16 +66,10 @@ func getRecoveryInfoFromPackage(algorithm string) (*RecoveryInfo, *rsa.PrivateKe
 			IV    string `json:"iv"`
 			Round int64  `json:"round"`
 		}
-		err = json.Unmarshal(backupFileData, &backupDetails)
+		err := json.Unmarshal(backupFileData, &backupDetails)
 		if err != nil {
 			log.Println("Error reading backup file details")
 			log.Fatal(err)
-		}
-		fmt.Println("WARNING: PERFORM THIS ACTION ONLY ON OFFLINE COMPUTER\n" +
-			"Enter Recovery key pair passphrase")
-		bytepw, err := term.ReadPassword(int(syscall.Stdin))
-		if err != nil {
-			os.Exit(1)
 		}
 		dk := pbkdf2.Key(bytepw, []byte(backupDetails.Salt), int(backupDetails.Round), 32, sha1.New)
 		ciphertext, err := base64.StdEncoding.DecodeString(string(privateKeyEnc))
@@ -104,7 +82,7 @@ func getRecoveryInfoFromPackage(algorithm string) (*RecoveryInfo, *rsa.PrivateKe
 		}
 
 		if len(ciphertext)%aes.BlockSize != 0 {
-			panic("ciphertext is not a multiple of the block size")
+			panic("Invalid encrypted private key")
 		}
 
 		mode := cipher.NewCBCDecrypter(block, []byte(backupDetails.IV))
@@ -154,24 +132,21 @@ func getRecoveryInfoFromPackage(algorithm string) (*RecoveryInfo, *rsa.PrivateKe
 	}
 }
 
-func getRecoveryPackageType(name string) int {
+func getRecoveryPackageType() int {
+	var recoveryType string
 
-	file, err := os.Open(name)
-	if err != nil {
-		panic(err)
-	}
-
-	defer file.Close()
-	fileType, err := GetFileContentType(file)
+	fmt.Println("Please select backup type.\n" + "1. Server backup\n" + "2. Mobile backup")
+	_, err := fmt.Scanln(&recoveryType)
 	if err != nil {
 		log.Fatal(err)
 	}
-	if fileType == "application/zip" {
-		return 2
-	} else if fileType == "text/plain; charset=utf-8" {
+
+	if recoveryType == "1" {
 		return 1
+	} else if recoveryType == "2" {
+		return 2
 	} else {
-		log.Fatal("Invalid file type")
+		log.Fatal("Invalid input")
 		return 0
 	}
 }
