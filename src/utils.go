@@ -101,7 +101,6 @@ func startLiminalRecoveryInfo(keyId string, token string, pubKey []byte, session
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(string(body))
 
 	var getPartialRecoveryResp GetPartialRecoveryResponse
 	err = json.Unmarshal(body, &getPartialRecoveryResp)
@@ -164,7 +163,6 @@ func getAccountDetails(token string) (*string, *string, error) {
 	if err != nil {
 		return nil, nil, err
 	}
-	fmt.Println(string(body))
 	var meResp map[string]interface{}
 	err = json.Unmarshal(body, &meResp)
 	if err != nil {
