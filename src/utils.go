@@ -27,18 +27,9 @@ type GetPartialRecoveryResponse struct {
 	Data    string `json:"data"`
 }
 
-//const apiUrl = "https://api.lmnl.app"
-//const auth0Url = "https://lmnlhq.us.auth0.com/oauth/token"
-//const auth0Audience = "https://api.lmnl.app/api/"
-
-//const apiUrl = "http://43.204.11.92:3001"
-
-//const auth0Url = "https://lmnl.us.auth0.com/oauth/token"
-//const auth0Audience = "https://api.lmnl.dev/api/wallet/all"
-
-const apiUrl = "https://api.lmnl.dev"
-const auth0Url = "https://lmnl.us.auth0.com/oauth/token"
-const auth0Audience = "https://api.lmnl.dev/api/wallet/all"
+const apiUrl = "https://api.lmnl.app"
+const auth0Url = "https://lmnlhq.us.auth0.com/oauth/token"
+const auth0Audience = "https://api.lmnl.app/api/"
 
 func mustParseURL(urlStr string) url.URL {
 	u, err := url.Parse(urlStr)
