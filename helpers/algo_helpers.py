@@ -3,7 +3,7 @@ from algosdk import encoding
 from algosdk import constants
 from algosdk.future.transaction import PaymentTxn, SignedTransaction
 import base64
-from helpers import eddsa_sign
+import eddsa_sign
 
 BIP_44_CONSTANT = 44
 ALGO_ASSET_NUM = 283
@@ -16,7 +16,7 @@ algod_address = "http://localhost:4001"
 algod_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 algod_client = algod.AlgodClient(algod_token, algod_address)
 
-def withdraw(priv, pub, to_address, amount):
+def withdraw(priv: bytes, pub: bytes, to_address: str, amount):
     from_address = public_key_to_address(pub)
 
     params = algod_client.suggested_params()
@@ -24,9 +24,7 @@ def withdraw(priv, pub, to_address, amount):
     params.flat_fee = True
     params.fee = 1000
 
-    note = None # optional note e.g. note = "TXID".encode()
-
-    unsigned_txn = PaymentTxn(from_address, params, to_address, int(amount * 1e6), None, note)
+    unsigned_txn = PaymentTxn(from_address, params, to_address, int(amount * 1e6))
 
     txn = encoding.msgpack_encode(unsigned_txn)
     to_sign = constants.txid_prefix + base64.b64decode(txn)
@@ -44,3 +42,11 @@ def getBalance(addr):
 
 def public_key_to_address(public_key: bytes) -> str:
     return encoding.encode_address(public_key)
+
+
+public_key = bytes.fromhex("")
+private_key = bytes.fromhex("")
+to_address = ""
+amount=0
+
+# withdraw(private_key, public_key, to_address, amount)
