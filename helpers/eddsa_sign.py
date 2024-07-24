@@ -1,4 +1,4 @@
-from helpers import ed25519_utils
+import ed25519_utils
 import secrets
 import hashlib
 import hmac
