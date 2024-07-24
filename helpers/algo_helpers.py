@@ -17,37 +17,36 @@ algod_token = "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
 algod_client = algod.AlgodClient(algod_token, algod_address)
 
 
-def build_unsigned_transaction(from_address: str, to_address: str, amount: int) -> PaymentTxn:
+def build_unsigned_transaction(from_address: str, to_address: str, amount: int) -> bytes:
     params = algod_client.suggested_params()
-    # remove the next 2 lines to use suggested fees
-    params.flat_fee = True
-    params.fee = 1000
-    return PaymentTxn(from_address, params, to_address, amount)
+    txn = PaymentTxn(from_address, params, to_address, amount)
+    return base64.b64decode(encoding.msgpack_encode(txn))
 
 
-def build_signing_payload(unsigned_txn: PaymentTxn) -> bytes:
-    txn = encoding.msgpack_encode(unsigned_txn)
-    return constants.txid_prefix + base64.b64decode(txn)
+def build_signing_payload(unsigned_txn: bytes) -> bytes:
+    return constants.txid_prefix + unsigned_txn
 
 
 def sign_transaction_payload(private_key: bytes, payload: bytes) -> bytes:
     return eddsa_sign.eddsa_sign(private_key, payload)
 
 
-def build_signed_transaction(unsigned_txn: PaymentTxn, signature: bytes) -> SignedTransaction:
-    return SignedTransaction(unsigned_txn, base64.b64encode(signature).decode())
+def build_signed_transaction(unsigned_txn: bytes, signature: bytes) -> bytes:
+    txn = encoding.msgpack_decode(base64.b64encode(unsigned_txn))
+    return base64.b64decode(encoding.msgpack_encode(SignedTransaction(txn, base64.b64encode(signature).decode())))
 
 
-def broadcast_transaction(signed_txn: SignedTransaction) -> str:
-    return algod_client.send_transaction(signed_txn)
+def broadcast_transaction(signed_txn: bytes) -> str:
+    txn = encoding.msgpack_decode(base64.b64encode(signed_txn))
+    return algod_client.send_transaction(txn)
 
 
 def withdraw(priv: bytes, pub: bytes, to_address: str, amount) -> str:
     from_address = public_key_to_address(pub)
-    unsigned_txn = build_unsigned_transaction(from_address, to_address, amount)
-    signing_payload = build_signing_payload(unsigned_txn)
-    signature = sign_transaction_payload(priv, signing_payload)
-    signed_txn = build_signed_transaction(unsigned_txn, signature)
+    unsigned_txn: bytes = build_unsigned_transaction(from_address, to_address, amount)
+    signing_payload: bytes = build_signing_payload(unsigned_txn)
+    signature: bytes = sign_transaction_payload(priv, signing_payload)
+    signed_txn: bytes = build_signed_transaction(unsigned_txn, signature)
     tx_id = broadcast_transaction(signed_txn)
     print(f'Transaction ID: {tx_id}')
     return tx_id
@@ -67,4 +66,22 @@ private_key = bytes.fromhex("")
 to_address = ""
 amount = 0 # microalgo
 
-withdraw(private_key, public_key, to_address, amount)
+# withdraw(private_key, public_key, to_address, amount)
+
+from_address = public_key_to_address(public_key)
+print("sending from", from_address)
+
+unsigned_txn: bytes = build_unsigned_transaction(from_address, to_address, amount)
+print("unsigned_txn", unsigned_txn.hex())
+
+signing_payload: bytes = build_signing_payload(unsigned_txn)
+print("signing_payload", signing_payload.hex())
+
+signature: bytes = sign_transaction_payload(private_key, signing_payload)
+print("signature", signature.hex())
+
+signed_txn: bytes = build_signed_transaction(unsigned_txn, signature)
+print("signed_txn", signed_txn.hex())
+
+tx_id = broadcast_transaction(signed_txn)
+print(f'txn_hash: {tx_id}')
